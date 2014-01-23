@@ -243,11 +243,13 @@ def launch_tests(games, curmin):
         out_pool = op
 
         #grabs urls of hosts and then grabs chunk of webpage
+        # TODO:  find better mechanism for credentials....
+
         auth_handler = urllib2.HTTPBasicAuthHandler()
         auth_handler.add_password(realm='Authorized personnel only',
                                   uri=testworld,
-                                  user='monitor',
-                                  passwd='153tvloop')
+                                  user='foo',
+                                  passwd='bar')
 
         opener = urllib2.build_opener(auth_handler)
         urllib2.install_opener(opener)
@@ -297,34 +299,12 @@ if __name__ == '__main__':
     # hrmm  taken out as it didn't work
     #    check_loop_pool = ThreadPool(1)
 
-    camelot = App( '10.200.1.167', '3306', 'cboatwright', 'cbee666','CamelotMaster')
-    camelot.load()
-
-    camelot.add_test(frequency=1,testsuffix="kingdomsofcamelot.com/fb/e2/src/admin/statusCache.php?csv=1" , world=0)
-    camelot.add_test(frequency=1,testsuffix="kingdomsofcamelot.com/fb/e2/src/admin/statusDatabase.php?csv=1" , world=0)
-    camelot.add_test(frequency=15,testsuffix="kingdomsofcamelot.com/fb/e2/src/admin/statusFacebook.php?csv=1" , world=0)
-
-    gw = App('10.200.1.168', '3312',  'wcdbuserread', 'ROwcdbu1!', 'gwmaster')
-    gw.load()
-    #gw.add_test(frequency=1, testsuffix="globalwarfaregame.com/admin/statusCache.php?csv=1" , world=0)
-    gw.add_test(frequency=1, testsuffix="globalwarfaregame.com/admin/statusDatabase.php?csv=1" , world=0)
-    #gw.add_test(frequency=15, testsuffix="globalwarfaregame.com/admin/statusFacebook.php?csv=1" , world=0)
-
-    glory = App('10.200.1.168', '3308', 'wcdbuserread', 'ROwcdbu1!', 'GoRMaster')
-    glory.load()
-    glory.add_test(frequency=1, testsuffix="gloryofrome.com/admin/statusCache.php?csv=1" , world=0)
-    glory.add_test(frequency=1, testsuffix="gloryofrome.com/admin/statusDatabase.php?csv=1" , world=0)
-    glory.add_test(frequency=1, testsuffix="gloryofrome.com/admin/statusFacebook.php?csv=1" , world=0)
+    SomeService = App( '10.200.1.167', '3306', 'cboatwright', 'cbee666','CamelotMaster')
+    SomeService.load()
 
 
 
-
-    samurai = App('10.200.1.168', '3321', 'wcdbuserread', 'ROwcdbu1!','samurai_master' )
-    samurai.load()
-    samurai.add_test(frequency=1, testsuffix="samuraidynasty.com/admin/statusCache.php?csv=1" , world=0)
-
-#    game_list = [ camelot, gw, glory, samurai]
-    game_list = [ samurai ]
+    game_list = [ SomeService ]
 
     for g in game_list:
         g.dump(3)
