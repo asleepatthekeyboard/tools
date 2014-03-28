@@ -1,11 +1,18 @@
 #!/bin/bash
 # (c) charles boatwright
 # 
-#This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+#This program is free software: you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation, either version 3 of the License, or (at
+#your option) any later version.
 #
-#This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+#This program is distributed in the hope that it will be useful, but
+#WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+#General Public License for more details.
 #
-#You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
+#You should have received a copy of the GNU General Public License
+#along with this program. If not, see http://www.gnu.org/licenses/.
 
 function set_options() 
 {
@@ -248,6 +255,45 @@ function build_vhost () {
   
 }
 
+# this function is likely to become a furball..
+# 
+function check_deps() 
+{
+  if [[ "$DISTRO" == "centos" ]]
+  then  
+    APACHEBIN=httpd
+  elif [[ "$DISTRO" == "debian" ]]
+  then
+    APACHEBIN=apache2
+  fi
+  
+    
+  APACHE=`sudo which $APACHEBIN`
+
+  if [ -z $APACHE ]
+  then 
+    echo apache binary was not found - it could be path issue or
+    echo it could be that apache web server is not installed.
+    exit 1
+  fi
+  APACHEVER=`$APACHEBIN -version | grep "Apache/2"`
+
+  if [[ -z $APACHEVER ]]
+  then
+    echo the version of apache does not seem to be version 2
+    $APACHE -version
+    exit 1
+  
+  fi
+
+  # fortunately openssl is usually in the path...
+  OPENSSL=`which openssl`
+  if [[ -z $OPENSSL ]]
+  then
+    echo no openssl found.  it needs to be installed
+    exit 1
+  fi
+}
 
 function cert_attrib()
 {
@@ -325,6 +371,8 @@ function cleanup()
 
 
 guess_distro
+check_deps
+
 set_options $@
 
 if [[ "$CLEANUP" == "yes" ]]
