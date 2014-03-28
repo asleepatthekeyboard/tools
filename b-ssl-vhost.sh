@@ -154,18 +154,18 @@ function set_options()
         DocumentRoot "WEBROOT/FQDN/htdocs"
 
         <Directory "WEBROOT/FQDN/htdocs">
-              Options +Indexes
-                AuthType Basic
-                AuthName "huh?"
-                AuthUserFile WEBROOT/htaccess-FQDNFILE
-                Require valid-user
+              Options -Indexes
+#                AuthType Basic
+#                AuthName "huh?"
+#                AuthUserFile WEBROOT/htaccess-FQDNFILE
+#                Require valid-user
 
 	</Directory>
-        <LocationMatch "/(data|conf|bin|inc)/">
-		Order allow,deny
-		Deny from all
-                Satisfy All
-        </LocationMatch>
+#        <LocationMatch "/(data|conf|bin|inc)/">
+#		Order allow,deny
+#		Deny from all
+#               Satisfy All
+#        </LocationMatch>
 
 </VirtualHost>
 </IfModule>
