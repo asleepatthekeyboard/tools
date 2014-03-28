@@ -33,7 +33,16 @@ function set_options()
   
   if  [[ -z $WEBROOT ]]
     then 
-    WEBROOT="/srv/datavol"
+    if [[ "$DISTRO" == "debian" ]]
+      then 
+      WEBROOT="/srv/datavol"
+
+
+    elif [[ "$DISTRO" == "centos" ]]
+      then 
+      WEBROOT="/var/www"
+
+    fi
   fi
   
   
