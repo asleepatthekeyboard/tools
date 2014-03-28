@@ -12,7 +12,15 @@ function set_options()
 
   if [[ -z $PKIDIR ]] 
     then
-    PKIDIR=/etc/ssl
+    if [[ "$DISTRO" == "debian" ]]
+      then 
+      PKIDIR=/etc/ssl
+
+    elif [[ "$DISTRO" == "centos" ]]
+      then 
+      PKIDIR=/etc/pki/tls
+    fi
+
   fi
   
   
@@ -24,17 +32,39 @@ function set_options()
   
   if [[ -z $APACHECONF ]]
     then
-    APACHECONF=/etc/apache2
+    if [[ "$DISTRO" == "debian" ]]
+      then 
+      APACHECONF=/etc/apache2
+    elif [[ "$DISTRO" == "centos" ]]
+      then 
+      APACHECONF=/etc/httpd
+    fi
+
   fi
 
   if [[ -z $APACHEUSER ]] 
     then 
-     APACHEUSER=www-data
+    if [[ "$DISTRO" == "debian" ]]
+      then 
+      APACHEUSER=www-data
+    elif [[ "$DISTRO" == "centos" ]]
+      then 
+      APACHEUSER=apache
+    fi
+     
   fi
   
   if [[ -z $APACHEGROUP ]] 
     then 
-    APACHEGROUP=www-data
+    if [[ "$DISTRO" == "debian" ]]
+      then 
+      APACHEGROUP=www-data
+
+    elif [[ "$DISTRO" == "centos" ]]
+      then 
+	APACHEGROUP=apache
+      fi
+    
   fi
 
   if [[ -z $TEMPLATE ]] 
@@ -42,8 +72,6 @@ function set_options()
     TEMPLATE=ssl-template
   fi
   
-  echo $1
-
   if [[ -z $1 ]] 
     then
     echo This tool sets up a self signed cert for apache2.2 or 
@@ -58,6 +86,14 @@ function set_options()
     echo these are the options over ride them with
     echo OPTION=/foo/bird/ $0 fqdn
     echo default values are 
+    
+
+    ALLOPTS="PKIDIR WEBROOT"
+    for OPT in $ALLOPTS; do
+	echo $OPT = $"{$OPT}"
+    done
+
+
     echo PKIDIR is $PKIDIR 
     echo WEBROOT is $WEBROOT 
     echo APACHECONF is $APACHECONF 
@@ -153,6 +189,44 @@ EOF
 
 }
 
+
+# this is fugly.  but, this script doesn't get run but once
+# per setup.  Deal
+function guess_distro ()
+{
+   grep -i ubuntu /proc/version > /dev/null
+   if [ 0 -eq $? ]
+   then
+     DISTRO=debian
+     
+   fi
+   grep -i debian /proc/version > /dev/null
+   if [ 0 -eq $? ]
+   then
+     DISTRO=debian
+   fi
+   grep -i centos /proc/version > /dev/null
+   if [ 0 -eq $? ]
+   then
+     DISTRO=centos
+
+   fi
+   grep -i redhat /proc/version > /dev/null
+   if [ 0 -eq $? ]
+   then
+     DISTRO=centos
+
+   fi
+   if [[ "" == "$DISTRO" ]]
+   then
+     echo The distribution was not detected.  The files
+     echo will be left in the `pwd`. 
+     echo Copy to the appropriate directories
+   fi
+   
+
+}
+
 function build_vhost () {
 
   sudo mkdir -p $WEBROOT/$FQDN/htdocs
@@ -160,8 +234,17 @@ function build_vhost () {
   touch $FQDN
 
   cat ssl-template | sed s/FQDNFILE/$FQDNFILE/ | sed s/FQDN/$FQDN/ | sed s.PKIDIR.$PKIDIR. | sed s.WEBROOT.$WEBROOT. > $FQDN
-  sudo cp $FQDN $APACHECONF/sites-available/
-  sudo ln -s $APACHECONF/sites-available/$FQDN $APACHECONF/sites-enabled/099-$FQDN
+
+  if [[ "$DISTRO" == "debian" ]]
+  then 
+    sudo cp $FQDN $APACHECONF/sites-available/
+    sudo ln -s $APACHECONF/sites-available/$FQDN $APACHECONF/sites-enabled/099-$FQDN
+  elif [[ "$DISTRO" == "centos" ]]
+  then 
+    sudo cp $FQDN $APACHECONF/conf.d
+  fi
+    
+    
   
 }
 
@@ -197,30 +280,44 @@ function config_ssl () {
 
   rm -f $PEMKEY $PEMCERT
 
-  sudo cp $FQDNFILE.key $PKIDIR/private
-  sudo cp $FQDNFILE.crt $PKIDIR/certs
-  
+  if [[  $DISTRO ]]
+  then
+    sudo cp $FQDNFILE.key $PKIDIR/private
+    sudo cp $FQDNFILE.crt $PKIDIR/certs
+  fi
 }
 
-
+# DANGER DANGER delects DocRoot!!!!
 function cleanup() 
 {
   
   sudo rm -rf $WEBROOT/$FQDN
-  sudo rm -f $FQDN $APACHECONF/sites-available/$FQDN $APACHECONF/sites-enabled/099-$FQDN
 
-  sudo rm -f $FQDNFILE.key $PKIDIR/private/$FQDNFILE.key $FQDNFILE.crt $PKIDIR/certs/$FQDNFILE.crt
+
+  if [[ "$DISTRO" == "debian" ]]
+  then 
+    
+    echo removing......
+    echo $FQDN $APACHECONF/sites-available/$FQDN $APACHECONF/sites-enabled/099-$FQDN $FQDNFILE.key $PKIDIR/private/$FQDNFILE.key $FQDNFILE.crt $PKIDIR/certs/$FQDNFILE.crt
+
+    sudo rm -f $FQDN $APACHECONF/sites-available/$FQDN $APACHECONF/sites-enabled/099-$FQDN $FQDNFILE.key $PKIDIR/private/$FQDNFILE.key $FQDNFILE.crt $PKIDIR/certs/$FQDNFILE.crt
+  elif [[ "$DISTRO" == "centos" ]]
+  then 
+    sudo rm -f $FQDN $APACHECONF/conf.d/$FQDN $FQDNFILE.key $PKIDIR/private/$FQDNFILE.key $FQDNFILE.crt $PKIDIR/certs/$FQDNFILE.crt
+  fi
 
   
 }
 
+# FIRE IT UP! FIRE IT UP!
 
 
+
+guess_distro
 set_options $@
 
 if [[ "$CLEANUP" == "yes" ]]
   then
-  echo cleaning up!
   cleanup
   exit 0
 else

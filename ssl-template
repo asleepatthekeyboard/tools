@@ -1,0 +1,43 @@
+
+<IfModule mod_ssl.c>
+
+<VirtualHost *:443>
+        ServerName FQDN
+        ServerAdmin webmaster@localhost
+
+        SSLEngine on
+        SSLCertificateFile PKIDIR/certs/FQDNFILE.crt
+        SSLCertificateKeyFile PKIDIR/private/FQDNFILE.key
+        SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown
+#       CustomLog logs/ssl_request_log #         "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+
+        ServerName FQDN
+        ServerAdmin webmaster@localhost
+
+        ErrorLog /FQDNFILE-error.log
+
+        # Possible values include: debug, info, notice, warn, error, crit,
+        # alert, emerg.
+	LogLevel warn
+
+        CustomLog /FQDNFILE-access.log           "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
+
+
+        DocumentRoot "WEBROOT/FQDN/htdocs"
+
+        <Directory "WEBROOT/FQDN/htdocs">
+              Options +Indexes
+                AuthType Basic
+                AuthName "huh?"
+                AuthUserFile WEBROOT/htaccess-FQDNFILE
+                Require valid-user
+
+	</Directory>
+        <LocationMatch "/(data|conf|bin|inc)/">
+		Order allow,deny
+		Deny from all
+                Satisfy All
+        </LocationMatch>
+
+</VirtualHost>
+</IfModule>
