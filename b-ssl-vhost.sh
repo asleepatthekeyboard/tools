@@ -278,12 +278,23 @@ function config_ssl () {
   cat $PEMCERT > $FQDNFILE.crt
   echo "" >> $FQDNFILE.crt
 
+  # just incase umask is loosie goosie
+  chmod 600 $FQDNFILE.key
+  chmod 640 $FQDNFILE.crt
+
   rm -f $PEMKEY $PEMCERT
 
   if [[  $DISTRO ]]
   then
-    sudo cp $FQDNFILE.key $PKIDIR/private
-    sudo cp $FQDNFILE.crt $PKIDIR/certs
+    # explicitly call the file out  (probably should test the 
+    # directory first)
+    sudo cp $FQDNFILE.key $PKIDIR/private/$FQDNFILE.key
+    sudo cp $FQDNFILE.crt $PKIDIR/certs/$FQDNFILE.crt
+
+    # just in case some DOPE set a stupid umask for root
+    sudo chmod 600 $FQDNFILE.key
+    sudo chmod 640 $FQDNFILE.crt
+
   fi
 }
 
